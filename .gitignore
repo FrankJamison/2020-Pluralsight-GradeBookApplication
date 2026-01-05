@@ -198,6 +198,9 @@ ClientBin/
 *.dbproj.schemaview
 *.jfm
 *.pfx
+
+# App runtime output
+*.gdbk
 *.publishsettings
 orleans.codegen.cs
 

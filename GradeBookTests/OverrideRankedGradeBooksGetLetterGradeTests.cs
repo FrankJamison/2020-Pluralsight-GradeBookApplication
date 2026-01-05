@@ -84,7 +84,7 @@ namespace GradeBookTests
             }
             else
             {
-                Assert.True(false, "`RankedGradeBook.GetLetterGrade` is either not overriding `BaseGradeBook.GetLetterGrade` or is using `base.GetLetterGrade` within the override.");
+                Assert.Fail("`RankedGradeBook.GetLetterGrade` is either not overriding `BaseGradeBook.GetLetterGrade` or is using `base.GetLetterGrade` within the override.");
             }
         }
 
@@ -146,7 +146,7 @@ namespace GradeBookTests
             var pattern = @"(public\soverride\schar\sGetLetterGrade\s?[(]\s?double\saverageGrade\s?[)])";
             var rgx = new Regex(pattern);
             var matches = rgx.Matches(input);
-            if(matches.Count > 0)
+            if (matches.Count > 0)
             {
                 pattern = @"base.GetLetterGrade[(]\s?averageGrade\s?[)];";
                 rgx = new Regex(pattern);
@@ -156,7 +156,7 @@ namespace GradeBookTests
             }
             else
             {
-                Assert.True(false, "`RankedGradeBook.GetLetterGrade` is either not overriding `BaseGradeBook.GetLetterGrade` or is using `base.GetLetterGrade` within the override.");
+                Assert.Fail("`RankedGradeBook.GetLetterGrade` is either not overriding `BaseGradeBook.GetLetterGrade` or is using `base.GetLetterGrade` within the override.");
             }
         }
 
