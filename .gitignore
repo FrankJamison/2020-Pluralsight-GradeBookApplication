@@ -201,6 +201,7 @@ ClientBin/
 
 # App runtime output
 *.gdbk
+!mybook.gdbk
 *.publishsettings
 orleans.codegen.cs
 
@@ -291,4 +292,3 @@ __pycache__/
 *.xsd.cs
 *.ncrunchsolution
 *.ncrunchproject
-*.gdbk

@@ -1,86 +1,157 @@
-# GradeBook (C# / .NET Core)
+# GradeBook — a console app with opinions (and tests)
 
-A console-based grade book application that lets an instructor create and manage gradebooks, enroll students, record grades, calculate GPAs, and persist data to disk.
+A C#/.NET console grade book that lets an instructor create gradebooks, enroll students, record grades, calculate letter grades + GPAs, and persist everything to disk.
 
-This repo is portfolio-ready: it demonstrates object-oriented design (inheritance + polymorphism), input validation, a command-driven UI, algorithmic ranking logic, and automated tests.
+It’s small on purpose: the goal is to demonstrate clean OO design, an interactive command-driven UI, algorithmic grading logic, and automated tests—without hiding behind a framework. (In other words: no UI fluff, just the stuff employers actually hire for.)
 
-## Technical accomplishments
+## Quick pitch (for employers & recruiters)
 
-- Built an extensible domain model with an abstract `BaseGradeBook` and concrete implementations:
-  - `StandardGradeBook`: traditional letter-grade thresholds.
-  - `RankedGradeBook`: assigns letter grades by class percentile (top 20% = A, next 20% = B, etc.) with minimum cohort rules.
-- Implemented ranked grading algorithm using sorting and percentile thresholds, including guard rails:
-  - Throws an `InvalidOperationException` when ranked grading is attempted with fewer than 5 students.
-  - Short-circuits statistics calculation with an explanatory message when requirements are not met.
-- Added weighted GPA support:
-  - `IsWeighted` toggles whether Honors / Dual Enrolled students get +1 GPA point.
-  - Student classification via `StudentType` enum (Standard, Honors, DualEnrolled).
-- Created a command router + interactive console UI:
-  - `StartingUserInterface` handles app-level commands (create/load/help/quit).
-  - `GradeBookUserInterface` handles gradebook-level commands (add/remove/list/addgrade/removegrade/statistics/save/close).
-- Implemented file persistence with JSON:
-  - Saves to `<GradeBookName>.gdbk` using Newtonsoft.Json.
-  - Loads gradebooks and resolves the correct runtime type via reflection-based deserialization.
-- Validated behavior with automated tests (xUnit): ranked grading rules, constructor contracts, and weighted GPA behavior.
+This repository demonstrates:
+
+- Object-oriented modeling with inheritance + polymorphism (`BaseGradeBook` → `StandardGradeBook` / `RankedGradeBook`).
+- Practical input validation + guard-rail behavior (clear errors and user-facing messages).
+- A simple command router and interactive CLI workflow (two-level UI: app-level + gradebook-level).
+- JSON persistence with type-safe rehydration for multiple gradebook implementations.
+- Unit tests (xUnit) validating contracts and algorithmic edge cases.
+
+If you’re looking for evidence of “can ship working code, can test it, can design for change,” this is that—just in a smaller container.
+
+## Features
+
+- **Two gradebook types**
+  - **Standard**: classic 90/80/70/60 thresholds.
+  - **Ranked**: assigns letter grades by percentile (top 20% = A, next 20% = B, etc.).
+- **Weighted GPA option**
+  - Toggle per gradebook via `IsWeighted` (set at creation time).
+  - Adds +1 GPA point for `Honors` and `DualEnrolled` students.
+- **Student modeling**
+  - `StudentType`: `Standard`, `Honors`, `DualEnrolled`.
+  - `EnrollmentType`: `Campus`, `State`, `National`, `International`.
+- **Statistics**
+  - Per-student grades and GPA.
+  - Aggregate averages broken down by enrollment and student type.
+- **Persistence**
+  - Saves to `<Name>.gdbk` (JSON) in the current working directory.
+  - Loads by deserializing into the correct gradebook implementation.
+
+## Design & development highlights
+
+### Architecture (intentionally simple)
+
+- **Domain layer**: `BaseGradeBook` holds student management + core calculation behavior.
+- **Extensibility via overrides**: `RankedGradeBook` overrides grading/stats behavior while reusing shared logic.
+- **Console UI**: two command routers
+  - `StartingUserInterface`: create/load/help/quit.
+  - `GradeBookUserInterface`: add/list/grades/statistics/save/close.
+
+### Ranked grading (algorithm + guard rails)
+
+- Uses sorting + percentile thresholds to place a score into A/B/C/D/F “buckets.”
+- **Minimum cohort rule**: ranked grading requires at least **5 students**.
+  - `GetLetterGrade` throws `InvalidOperationException` when violated.
+  - Stats commands short-circuit with a friendly message instead of half-working.
+
+### Persistence (JSON)
+
+- Save uses `Newtonsoft.Json` serialization.
+- Load converts JSON into the appropriate runtime type.
+  - This is implemented with reflection-based type discovery.
+  - It’s a pragmatic approach for a small project; in larger systems you’d likely use an explicit discriminator + custom `JsonConverter`.
 
 ## Tech stack
 
 - Language: C#
-- Runtime: .NET (net8.0)
-- Testing: xUnit
+- Runtime: .NET `net8.0`
 - Serialization: Newtonsoft.Json
+- Testing: xUnit
 
-## Prerequisites
+## Getting started
 
-- .NET SDK 8.x installed (`dotnet --version` should show 8.*)
+### Prerequisites
 
-## How to run
+- .NET SDK 8.x (`dotnet --version` should show `8.*`)
+
+### Build / run / test
 
 From the repo root:
 
-- Build:
-  - `dotnet build .\GradeBook.sln -c Release`
+- Build: `dotnet build .\GradeBook.sln -c Release`
+- Run: `dotnet run --project .\GradeBook\GradeBook.csproj -c Release`
+- Test: `dotnet test .\GradeBookTests\GradeBookTests.csproj -c Release`
 
-- Run the app:
-  - `dotnet run --project .\GradeBook\GradeBook.csproj -c Release`
+### Docker (optional)
 
-- Run tests:
-  - `dotnet test .\GradeBookTests\GradeBookTests.csproj -c Release`
+The Docker image builds and runs the console app on .NET 8.
 
-## Example usage (interactive)
+- Build the image:
+  - `docker build -t gradebook .`
 
-When the app starts, you can create or load a gradebook:
+- Run it interactively (recommended for console apps):
+  - PowerShell: `docker run -it --rm gradebook`
+  - cmd.exe: `docker run -it --rm gradebook`
 
-- `create MyBook standard true`
-- `create MyBook ranked false`
-- `load MyBook`
+- Persist `.gdbk` save files by mounting the current folder into the container:
+  - PowerShell: `docker run -it --rm -v ${PWD}:/work -w /work gradebook`
+  - cmd.exe: `docker run -it --rm -v %cd%:/work -w /work gradebook`
+
+## 2026 updates (portfolio refresh)
+
+As of January 2026, this repo got a practical refresh focused on “easy to evaluate, easy to run”:
+
+- **Modern Docker build**: updated to a .NET 8 multi-stage image that starts the app by default.
+- **Employer-friendly docs**: expanded the README with architecture notes, command reference, and Docker usage.
+- **Sample data stays committed**: `mybook.gdbk` is intentionally tracked so reviewers can `load mybook` immediately.
+
+## Using the app (command reference)
+
+Commands are case-insensitive; arguments are space-separated.
+
+### App-level commands
+
+- `create <Name> <Type> <Weighted>`
+  - `<Type>`: `standard` | `ranked`
+  - `<Weighted>`: `true` | `false`
+  - Example: `create MyBook ranked true`
+- `load <Name>`
+  - Loads `<Name>.gdbk` from the working directory.
+  - Example: `load mybook`
 - `help`
 - `quit`
 
-When a gradebook is open:
+### Gradebook-level commands
 
-- Add a student:
-  - `add Alice Honors Campus`
-- Add grades (0–100):
-  - `addgrade Alice 95`
-  - `addgrade Alice 88`
-- View statistics:
-  - `statistics all`
-  - `statistics Alice`
-- Persist and exit:
-  - `save`
-  - `close`
+- `add <StudentName> <StudentType> <EnrollmentType>`
+  - Example: `add Alice Honors Campus`
+- `remove <StudentName>`
+- `list`
+- `addgrade <StudentName> <Score>`
+  - Score is 0–100 (out of range throws an exception).
+  - Example: `addgrade Alice 95`
+- `removegrade <StudentName> <Score>`
+- `statistics all`
+- `statistics <StudentName>`
+- `save`
+- `close`
+- `help`
+
+## Sample data
+
+There’s a tiny example gradebook included: [mybook.gdbk](mybook.gdbk)
+
+- Try: `load mybook`
+- Then: `statistics all`
 
 ## Project structure
 
-- `GradeBook/`
-  - `GradeBooks/`: gradebook types (`BaseGradeBook`, `StandardGradeBook`, `RankedGradeBook`)
-  - `UserInterfaces/`: command routing and CLI UI
-  - `Enums/`: `GradeBookType`, `StudentType`, `EnrollmentType`
-  - `Student.cs`: student entity and grade tracking
-- `GradeBookTests/`: xUnit tests validating behavior and contracts
+- [GradeBook/](GradeBook/)
+  - [GradeBook/GradeBooks/](GradeBook/GradeBooks/): domain implementations (`BaseGradeBook`, `StandardGradeBook`, `RankedGradeBook`)
+  - [GradeBook/UserInterfaces/](GradeBook/UserInterfaces/): CLI command routing
+  - [GradeBook/Enums/](GradeBook/Enums/): enums for types and classifications
+  - [GradeBook/Student.cs](GradeBook/Student.cs): student entity + grade tracking
+- [GradeBookTests/](GradeBookTests/): xUnit tests validating behavior and contracts
 
-## Notes
+## Notes (the “gotchas” you’d want in production docs)
 
-- Ranked grading requires at least 5 students (by design), so add at least five students with grades before using ranked statistics.
-- The app persists gradebooks to `<Name>.gdbk` in the current working directory when you run `save`.
+- Ranked gradebooks require at least **5 students** before ranked grading/statistics make sense.
+- `.gdbk` files are just JSON; the app writes them next to where you run the process.
+- [Dockerfile](Dockerfile) uses a .NET 8 multi-stage build; use `docker run -it` for an interactive console session.
